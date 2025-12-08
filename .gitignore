@@ -1,0 +1,15 @@
+node_modules/
+npm-debug.log*
+package-lock.json
+.DS_Store
+.env
+.env.local
+dist/
+coverage/
+.eslintcache
+CAT-ONLINE-SURVEY-SYSTEM/
+test/
+tests/
+*.log
+.idea/
+.vscode/

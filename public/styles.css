@@ -1,0 +1,17 @@
+:root {
+  --bg: #f7fafc;
+  --card: #ffffff;
+  --accent: #2563eb;
+  --muted: #6b7280;
+}
+
+html,body { height:100%; margin:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:var(--bg); color:#0f172a; }
+header { background:var(--card); padding:1rem 2rem; box-shadow:0 1px 0 rgba(0,0,0,0.04); }
+main { max-width:900px; margin:2rem auto; padding:1rem; display:grid; gap:1.5rem; }
+section { background:var(--card); padding:1rem 1.25rem; border-radius:8px; box-shadow:0 6px 18px rgba(15,23,42,0.06); }
+form { display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; }
+input[type="text"] { padding:0.5rem; border-radius:6px; border:1px solid #e6eef6; min-width:180px; }
+button { background:var(--accent); color:#fff; border:none; padding:0.5rem 0.75rem; border-radius:6px; cursor:pointer; }
+#surveys { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.5rem; }
+#surveys li { padding:0.75rem; border-radius:6px; background:linear-gradient(90deg, rgba(37,99,235,0.03), rgba(99,102,241,0.02)); }
+small { color:var(--muted); }

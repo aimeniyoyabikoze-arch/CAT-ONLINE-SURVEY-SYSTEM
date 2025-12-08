@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Survey System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Online Survey System</h1>
+    
+    <div class="form-section">
+      <h2>Create Survey</h2>
+      <form id="surveyForm">
+        <input type="text" id="title" placeholder="Survey Title" required>
+        <textarea id="description" placeholder="Survey Description" rows="4"></textarea>
+        <button type="submit">Create Survey</button>
+      </form>
+    </div>
+
+    <div class="surveys-section">
+      <h2>Surveys</h2>
+      <div id="surveysList" class="surveys-list"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
