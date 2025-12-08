@@ -10,8 +10,8 @@
     "sourceType": "module"
   },
   "rules": {
-    "no-unused-vars": ["warn"],
+    "no-unused-vars": "warn",
     "no-console": "off"
   },
-  "ignorePatterns": ["**/public/**", "**/frontend/**", "node_modules/", "dist/", "coverage/"]
+  "ignorePatterns": ["node_modules/", "public/", "frontend/", "dist/", "coverage/", "k8s/", "monitoring/"]
 }
