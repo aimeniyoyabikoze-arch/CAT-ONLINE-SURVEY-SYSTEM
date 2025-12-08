@@ -2,6 +2,16 @@ const request = require('supertest');
 const app = require('./index');
 
 describe('Survey API', () => {
+  let server;
+
+  beforeAll(() => {
+    server = app.listen(0); // Use random available port
+  });
+
+  afterAll((done) => {
+    server.close(done);
+  });
+
   describe('GET /health', () => {
     it('should return healthy status', async () => {
       const response = await request(app).get('/health');
