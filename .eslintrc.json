@@ -11,23 +11,7 @@
   },
   "rules": {
     "no-unused-vars": ["warn"],
-    "no-console": "off",
-    "indent": ["error", 2],
-    "linebreak-style": ["error", "unix"],
-    "quotes": ["error", "single"],
-    "semi": ["error", "always"]
+    "no-console": "off"
   },
-  "ignorePatterns": ["node_modules/", "frontend/", "dist/", "coverage/"],
-  "overrides": [
-    {
-      "files": ["public/**/*.js"],
-      "env": {
-        "browser": true,
-        "node": false
-      },
-      "rules": {
-        "no-undef": "off"
-      }
-    }
-  ]
+  "ignorePatterns": ["node_modules/", "frontend/", "public/", "dist/", "coverage/"]
 }

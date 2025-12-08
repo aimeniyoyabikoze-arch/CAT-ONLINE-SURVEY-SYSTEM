@@ -1,0 +1,7 @@
+node_modules/
+frontend/
+public/
+dist/
+coverage/
+.next/
+build/
