@@ -19,7 +19,7 @@ function renderSurveys(list) {
 }
 
 function escapeHtml(str = '') {
-  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  return String(str).replace(/[&<>'']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;',''':'&quot;',''':'&#39;'}[m]));
 }
 
 async function init() {
