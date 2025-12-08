@@ -17,5 +17,17 @@
     "quotes": ["error", "single"],
     "semi": ["error", "always"]
   },
-  "ignorePatterns": ["node_modules/", "frontend/", "dist/", "coverage/"]
+  "ignorePatterns": ["node_modules/", "frontend/", "dist/", "coverage/"],
+  "overrides": [
+    {
+      "files": ["public/**/*.js"],
+      "env": {
+        "browser": true,
+        "node": false
+      },
+      "rules": {
+        "no-undef": "off"
+      }
+    }
+  ]
 }

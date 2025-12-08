@@ -30,7 +30,7 @@ app.post('/api/surveys', (req, res) => {
   res.status(201).json(newSurvey);
 });
 
-const server = app.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`OnlineSurveySystem running on port ${PORT}`);
 });
 
