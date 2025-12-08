@@ -7,7 +7,7 @@
     "start": "node index.js",
     "test": "jest --coverage",
     "dev": "nodemon index.js",
-    "lint": "eslint .",
+    "lint": "eslint . --ignore-pattern=public --ignore-pattern=frontend",
     "build": "echo 'Build step for survey system'"
   },
   "keywords": ["survey", "devops"],

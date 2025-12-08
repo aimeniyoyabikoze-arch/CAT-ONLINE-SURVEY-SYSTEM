@@ -13,5 +13,5 @@
     "no-unused-vars": ["warn"],
     "no-console": "off"
   },
-  "ignorePatterns": ["node_modules/", "frontend/", "public/", "dist/", "coverage/"]
+  "ignorePatterns": ["**/public/**", "**/frontend/**", "node_modules/", "dist/", "coverage/"]
 }
