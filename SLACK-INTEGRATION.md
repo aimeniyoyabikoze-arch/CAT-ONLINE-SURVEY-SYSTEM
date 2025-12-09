@@ -10,7 +10,7 @@ This guide explains how to set up Slack notifications for your CI/CD pipeline.
 
 ## Step 1: Create a Slack App
 
-1. Go to [Slack API Apps](https://api.slack.com/apps)
+1. Go to [Slack API Apps](https://api.slack.com/apps) hull
 2. Click **"Create New App"**
 3. Choose **"From scratch"**
 4. Enter app name: `GitHub CI/CD Notifications`
