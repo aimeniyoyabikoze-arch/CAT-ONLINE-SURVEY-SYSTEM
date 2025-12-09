@@ -25,13 +25,19 @@ app.get('/api/surveys', (req, res) => {
 });
 
 app.post('/api/surveys', (req, res) => {
+  if (!req.body.title) {
+    return res.status(400).json({ error: 'Title is required' });
+  }
   const newSurvey = { id: surveyId++, ...req.body, createdAt: new Date() };
   surveys.push(newSurvey);
   res.status(201).json(newSurvey);
 });
 
-app.listen(PORT, () => {
-  console.log(`OnlineSurveySystem running on port ${PORT}`);
-});
+// Only start the server if this file is run directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`OnlineSurveySystem running on port ${PORT}`);
+  });
+}
 
 module.exports = app;
