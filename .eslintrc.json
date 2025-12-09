@@ -13,5 +13,5 @@
     "no-unused-vars": "warn",
     "no-console": "off"
   },
-  "ignorePatterns": ["node_modules/", "public/", "frontend/", "dist/", "coverage/", "k8s/", "monitoring/"]
+  "ignorePatterns": ["**/*.test.js", "node_modules/", "public/", "frontend/", "dist/", "coverage/", "k8s/", "monitoring/", "*.config.js"]
 }
