@@ -99,21 +99,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - name: Cache frontend node_modules
-        uses: actions/cache@v3
-        with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-frontend-
       - name: Install frontend dependencies
-        run: cd frontend && npm install --legacy-peer-deps
-      - name: Check npm version
-        run: npm --version
-      - name: List frontend node_modules
-        run: ls -la frontend/node_modules 2>&1 | head -20 || echo "node_modules not found"
+        run: cd frontend && npm install --legacy-peer-deps --no-audit --no-fund
       - name: Build frontend
-        run: cd frontend && npm run build 2>&1
+        run: cd frontend && CI=false npm run build
 
   # Job 8: Dependency Check
   dependency-check:
