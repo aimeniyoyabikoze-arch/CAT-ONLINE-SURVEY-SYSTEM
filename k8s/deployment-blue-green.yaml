@@ -1,0 +1,238 @@
+# Blue-Green Deployment Strategy for Survey System
+# This configuration demonstrates both blue and green environments
+# One is active (handling traffic) while the other is standby for easy rollback
+
+---
+# Blue Deployment (Current Production)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: survey-system-blue
+  namespace: default
+  labels:
+    app: survey-system
+    version: blue
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: survey-system
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: survey-system
+        version: blue
+    spec:
+      containers:
+      - name: survey-system
+        image: yourusername/survey-system:v1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: DEPLOYMENT_VERSION
+          value: "blue"
+        
+        # Resource requests and limits
+        resources:
+          requests:
+            cpu: 250m        # Minimum CPU needed
+            memory: 256Mi    # Minimum memory needed
+          limits:
+            cpu: 1000m       # Maximum CPU allowed
+            memory: 1Gi      # Maximum memory allowed
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 2
+        
+        # Security context
+        securityContext:
+          runAsNonRoot: false
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+      
+      # Pod-level settings
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - survey-system
+              topologyKey: kubernetes.io/hostname
+
+---
+# Green Deployment (Standby/New Version)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: survey-system-green
+  namespace: default
+  labels:
+    app: survey-system
+    version: green
+spec:
+  replicas: 0  # Start with 0 replicas (inactive)
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: survey-system
+      version: green
+  template:
+    metadata:
+      labels:
+        app: survey-system
+        version: green
+    spec:
+      containers:
+      - name: survey-system
+        image: yourusername/survey-system:v1.1.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: DEPLOYMENT_VERSION
+          value: "green"
+        
+        # Resource requests and limits (same as blue)
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 2
+        
+        # Security context
+        securityContext:
+          runAsNonRoot: false
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+      
+      # Pod-level settings
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - survey-system
+              topologyKey: kubernetes.io/hostname
+
+---
+# Service routes traffic to active deployment (blue)
+apiVersion: v1
+kind: Service
+metadata:
+  name: survey-system-service
+  namespace: default
+  labels:
+    app: survey-system
+spec:
+  type: LoadBalancer
+  selector:
+    app: survey-system
+    version: blue  # Currently routes to blue
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  sessionAffinity: None
+  loadBalancerSourceRanges: []
+
+---
+# Ingress for external access
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: survey-system-ingress
+  namespace: default
+  labels:
+    app: survey-system
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: survey.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: survey-system-service
+            port:
+              number: 80

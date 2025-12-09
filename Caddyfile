@@ -1,0 +1,44 @@
+# Caddyfile for Docker Swarm reverse proxy
+# Load balances traffic across survey-app service
+
+{
+  email admin@example.com
+  on_demand_tls {
+    ask http://localhost:2019/check
+  }
+}
+
+:80 {
+  encode gzip
+
+  # Health check endpoint
+  handle /health {
+    respond 200
+  }
+
+  # API routes
+  handle /api/* {
+    reverse_proxy survey-app:3000 {
+      policy random_choose 2
+      healthuri /health
+      health_timeout 5s
+      health_interval 10s
+    }
+  }
+
+  # Default route
+  handle / {
+    reverse_proxy survey-app:3000 {
+      policy least_connection
+      healthuri /health
+      health_timeout 5s
+      health_interval 10s
+    }
+  }
+
+  # Access logs
+  log {
+    output stdout
+    level info
+  }
+}
