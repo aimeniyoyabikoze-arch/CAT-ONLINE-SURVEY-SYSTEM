@@ -39,7 +39,7 @@ function App() {
     setMessage('');
 
     try {
-      const response = await axios.post('http://localhost:3000/api/surveys', survey);
+      await axios.post('http://localhost:3000/api/surveys', survey);
       setMessage('Survey created successfully!');
       setSurvey({ title: '', description: '', questions: [''] });
     } catch (error) {
