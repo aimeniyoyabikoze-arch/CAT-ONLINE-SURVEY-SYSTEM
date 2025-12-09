@@ -91,7 +91,6 @@ jobs:
       - name: Build Docker Image
         run: docker build -t survey-system:${{ github.sha }} .
 
-  # Job 7: Frontend Build Check
   # Job 7: Deploy Job
   deploy:
     runs-on: ubuntu-latest
