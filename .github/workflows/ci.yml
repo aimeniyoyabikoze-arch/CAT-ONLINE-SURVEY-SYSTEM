@@ -73,8 +73,39 @@ jobs:
     needs: [lint-backend, unit-tests]
     steps:
       - uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v2
-      - run: docker build -t survey-system:${{ github.sha }} .
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/survey-system:latest
+            ${{ secrets.DOCKER_USERNAME }}/survey-system:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/survey-system:${{ github.ref_name }}-latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/survey-system:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/survey-system:buildcache,mode=max
+      
+      - name: Docker image summary
+        run: |
+          echo "✅ Docker Image Built and Pushed Successfully!"
+          echo ""
+          echo "📦 Image Tags:"
+          echo "  • ${{ secrets.DOCKER_USERNAME }}/survey-system:latest"
+          echo "  • ${{ secrets.DOCKER_USERNAME }}/survey-system:${{ github.sha }}"
+          echo "  • ${{ secrets.DOCKER_USERNAME }}/survey-system:${{ github.ref_name }}-latest"
+          echo ""
+          echo "🔍 View on Docker Hub:"
+          echo "  https://hub.docker.com/r/${{ secrets.DOCKER_USERNAME }}/survey-system"
 
   deploy:
     runs-on: ubuntu-latest
