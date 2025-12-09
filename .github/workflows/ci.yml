@@ -74,16 +74,27 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
+      - name: Check Docker Hub Credentials
+        id: check-secrets
+        run: |
+          if [[ -n "${{ secrets.DOCKER_USERNAME }}" && -n "${{ secrets.DOCKER_PASSWORD }}" ]]; then
+            echo "has-secrets=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-secrets=false" >> $GITHUB_OUTPUT
+          fi
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       
       - name: Log in to Docker Hub
+        if: steps.check-secrets.outputs.has-secrets == 'true'
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       
-      - name: Build and push Docker image
+      - name: Build and push Docker image (with Docker Hub)
+        if: steps.check-secrets.outputs.has-secrets == 'true'
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -95,17 +106,41 @@ jobs:
           cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/survey-system:buildcache
           cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/survey-system:buildcache,mode=max
       
-      - name: Docker image summary
+      - name: Build Docker image (local only - no Docker Hub push)
+        if: steps.check-secrets.outputs.has-secrets == 'false'
         run: |
-          echo "✅ Docker Image Built and Pushed Successfully!"
-          echo ""
-          echo "📦 Image Tags:"
-          echo "  • ${{ secrets.DOCKER_USERNAME }}/survey-system:latest"
-          echo "  • ${{ secrets.DOCKER_USERNAME }}/survey-system:${{ github.sha }}"
-          echo "  • ${{ secrets.DOCKER_USERNAME }}/survey-system:${{ github.ref_name }}-latest"
-          echo ""
-          echo "🔍 View on Docker Hub:"
-          echo "  https://hub.docker.com/r/${{ secrets.DOCKER_USERNAME }}/survey-system"
+          docker build -t survey-system:latest .
+          docker build -t survey-system:${{ github.sha }} .
+          docker build -t survey-system:${{ github.ref_name }}-latest .
+          echo "✅ Docker image built successfully (local)"
+          docker images | grep survey-system
+      
+      - name: Docker build summary
+        run: |
+          if [[ "${{ steps.check-secrets.outputs.has-secrets }}" == "true" ]]; then
+            echo "✅ Docker Image Built and Pushed to Docker Hub!"
+            echo ""
+            echo "📦 Image Tags:"
+            echo "  • ${{ secrets.DOCKER_USERNAME }}/survey-system:latest"
+            echo "  • ${{ secrets.DOCKER_USERNAME }}/survey-system:${{ github.sha }}"
+            echo "  • ${{ secrets.DOCKER_USERNAME }}/survey-system:${{ github.ref_name }}-latest"
+            echo ""
+            echo "🔍 View on Docker Hub:"
+            echo "  https://hub.docker.com/r/${{ secrets.DOCKER_USERNAME }}/survey-system"
+          else
+            echo "✅ Docker Image Built Successfully!"
+            echo ""
+            echo "ℹ️  Note: Docker Hub credentials not configured"
+            echo ""
+            echo "📋 To enable Docker Hub push:"
+            echo "  1. Go to: https://github.com/${{ github.repository }}/settings/secrets/actions"
+            echo "  2. Add secret: DOCKER_USERNAME"
+            echo "  3. Add secret: DOCKER_PASSWORD (or access token)"
+            echo "  4. Push a new commit to trigger the workflow"
+            echo ""
+            echo "🔗 Get Docker Token:"
+            echo "  https://hub.docker.com/settings/security"
+          fi
 
   deploy:
     runs-on: ubuntu-latest
