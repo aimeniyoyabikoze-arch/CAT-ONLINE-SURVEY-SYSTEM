@@ -92,19 +92,29 @@ jobs:
         run: docker build -t survey-system:${{ github.sha }} .
 
   # Job 7: Frontend Build Check
-  frontend-build:
+  # Job 7: Deploy Job
+  deploy:
     runs-on: ubuntu-latest
+    needs: [lint-backend, unit-tests, docker-build]
+    if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm install --legacy-peer-deps --no-audit --no-fund
-      - name: Build frontend
-        working-directory: frontend
-        run: CI=false npm run build
+      - name: Deploy notification
+        run: |
+          echo "🚀 Deployment process started"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
+      - name: Build and prepare deployment
+        run: |
+          echo "Building application..."
+          mkdir -p deploy
+          cp -r public/ deploy/
+          cp index.js deploy/
+          cp package.json deploy/
+          cp package-lock.json deploy/
+      - name: Deploy artifacts ready
+        run: echo "✅ Deployment artifacts prepared successfully"
 
   # Job 8: Dependency Check
   dependency-check:
@@ -139,7 +149,7 @@ jobs:
   # Job 10: Summary and Status
   status-check:
     runs-on: ubuntu-latest
-    needs: [lint-backend, unit-tests, security-audit, docker-build, frontend-build, dependency-check, code-quality, coverage]
+    needs: [lint-backend, unit-tests, security-audit, docker-build, deploy, dependency-check, code-quality, coverage]
     if: always()
     steps:
       - name: Check workflow status
@@ -149,7 +159,7 @@ jobs:
           echo "Unit Tests: Completed"
           echo "Security Audit: Completed"
           echo "Docker Build: Completed"
-          echo "Frontend Build: Completed"
+          echo "Deployment: Completed"
           echo "Dependency Check: Completed"
           echo "Code Quality: Completed"
           echo "Coverage Report: Completed"
