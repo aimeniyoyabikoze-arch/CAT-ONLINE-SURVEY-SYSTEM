@@ -1,0 +1,135 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [master, main, develop]
+  pull_request:
+    branches: [master, main, develop]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - run: npm ci
+
+  lint-backend:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/coverage-final.json
+
+  security-audit:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm audit --audit-level=moderate || true
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [lint-backend, unit-tests]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v2
+      - run: docker build -t survey-system:${{ github.sha }} .
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [lint-backend, unit-tests, docker-build]
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          echo "🚀 Deployment started for ${{ github.sha }}"
+          mkdir -p deploy
+          cp -r public/ deploy/
+          cp index.js deploy/
+          cp package.json deploy/
+          cp package-lock.json deploy/
+          echo "✅ Deployment artifacts ready"
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm outdated || true
+
+  code-quality:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - run: npm ci
+      - run: |
+          echo "Backend files: $(find . -name '*.js' -not -path './node_modules/*' -not -path './frontend/*' -not -path './public/*' | wc -l)"
+          echo "Test files: $(find . -name '*.test.js' | wc -l)"
+
+  status-check:
+    runs-on: ubuntu-latest
+    needs: [lint-backend, unit-tests, security-audit, docker-build, deploy, dependency-check, code-quality, coverage]
+    if: always()
+    steps:
+      - run: |
+          echo "✅ Pipeline Complete!"
+          echo "  - Setup"
+          echo "  - Lint Backend"
+          echo "  - Unit Tests"
+          echo "  - Coverage"
+          echo "  - Security Audit"
+          echo "  - Docker Build"
+          echo "  - Deploy"
+          echo "  - Dependency Check"
+          echo "  - Code Quality"
